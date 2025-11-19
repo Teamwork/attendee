@@ -87,7 +87,7 @@ services:
       - AWS_RECORDING_STORAGE_BUCKET_NAME=${AWS_RECORDING_STORAGE_BUCKET_NAME:-}
     command: "python bots/webpage_streamer/run_webpage_streamer.py"
     security_opt:
-      - seccomp=./bots/web_bot_adapter/chrome_seccomp.json
+      - seccomp:unconfined
     profiles:
       - webpage-streamer
 
