@@ -1,4 +1,27 @@
+import os
 from dataclasses import dataclass
+
+
+def _get_env_int(env_var: str, default: int) -> int:
+    """Get an integer from environment variable with a default value."""
+    value = os.getenv(env_var)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
+def _get_env_int_optional(env_var: str) -> int | None:
+    """Get an optional integer from environment variable."""
+    value = os.getenv(env_var)
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
 
 
 @dataclass(frozen=True)
@@ -15,14 +38,22 @@ class AutomaticLeaveConfiguration:
         enable_closed_captions_timeout_seconds: Number of seconds to wait before leaving if bot could not enable closed captions (infinite by default)
         authorized_user_not_in_meeting_timeout_seconds: Number of seconds to wait before leaving if the authorized user is not in the meeting. Only relevant if this is a Zoom bot using the on behalf of token.
         bot_keywords: List of keywords to identify bot participants. A participant is considered a bot if any word in their name matches a keyword (case-insensitive).
+
+    Environment Variables:
+        BOT_SILENCE_TIMEOUT_SECONDS: Override default for silence_timeout_seconds (default: 600)
+        BOT_SILENCE_ACTIVATE_AFTER_SECONDS: Override default for silence_activate_after_seconds (default: 1200)
+        BOT_ONLY_PARTICIPANT_TIMEOUT_SECONDS: Override default for only_participant_in_meeting_timeout_seconds (default: 60)
+        BOT_WAIT_FOR_HOST_TIMEOUT_SECONDS: Override default for wait_for_host_to_start_meeting_timeout_seconds (default: 600)
+        BOT_WAITING_ROOM_TIMEOUT_SECONDS: Override default for waiting_room_timeout_seconds (default: 900)
+        BOT_MAX_UPTIME_SECONDS: Override default for max_uptime_seconds (default: None/infinite)
     """
 
-    silence_timeout_seconds: int = 600
-    silence_activate_after_seconds: int = 1200
-    only_participant_in_meeting_timeout_seconds: int = 60
-    wait_for_host_to_start_meeting_timeout_seconds: int = 600
-    waiting_room_timeout_seconds: int = 900
-    max_uptime_seconds: int | None = None
+    silence_timeout_seconds: int = _get_env_int("BOT_SILENCE_TIMEOUT_SECONDS", 600)
+    silence_activate_after_seconds: int = _get_env_int("BOT_SILENCE_ACTIVATE_AFTER_SECONDS", 1200)
+    only_participant_in_meeting_timeout_seconds: int = _get_env_int("BOT_ONLY_PARTICIPANT_TIMEOUT_SECONDS", 60)
+    wait_for_host_to_start_meeting_timeout_seconds: int = _get_env_int("BOT_WAIT_FOR_HOST_TIMEOUT_SECONDS", 600)
+    waiting_room_timeout_seconds: int = _get_env_int("BOT_WAITING_ROOM_TIMEOUT_SECONDS", 900)
+    max_uptime_seconds: int | None = _get_env_int_optional("BOT_MAX_UPTIME_SECONDS")
     enable_closed_captions_timeout_seconds: int | None = None
     authorized_user_not_in_meeting_timeout_seconds: int = 600
     bot_keywords: list[str] | None = None
