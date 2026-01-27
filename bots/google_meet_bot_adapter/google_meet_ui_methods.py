@@ -100,24 +100,18 @@ class GoogleMeetUIMethods:
             raise UiLoginRequiredException("Login required", step)
 
     def look_for_denied_your_request_element(self, step):
-        denied_your_request_element = self.find_element_by_selector(
-            By.XPATH,
-            '//*[contains(text(), "Someone in the call denied your request to join") or contains(text(), "No one responded to your request to join the call") or contains(text(), "You left the meeting")]',
-        )
-        if not denied_your_request_element:
-            return
+        # Check each denial pattern individually for better diagnostics
+        denial_patterns = [
+            ("Someone in the call denied your request to join", UiRequestToJoinDeniedException.DENIED_BY_PARTICIPANT),
+            ("No one responded to your request to join the call", UiRequestToJoinDeniedException.NO_RESPONSE),
+            ("You left the meeting", UiRequestToJoinDeniedException.DISCONNECTED),
+        ]
 
-        element_text = denied_your_request_element.text
-
-        if "Someone in the call denied your request to join" in element_text:
-            logger.warning("Someone in the call actively denied our request to join. Raising UiRequestToJoinDeniedException")
-            raise UiRequestToJoinDeniedException("Someone in the call denied your request to join", step)
-        elif "No one responded to your request to join the call" in element_text:
-            logger.warning("No one responded to our request to join (timeout). Raising UiRequestToJoinDeniedException")
-            raise UiRequestToJoinDeniedException("No one responded to your request to join the call", step)
-        else:  # "You left the meeting"
-            logger.warning("Saw 'You left the meeting' element. Happens if someone actively denied our request to join. Raising UiRequestToJoinDeniedException")
-            raise UiRequestToJoinDeniedException("You left the meeting", step)
+        for text_pattern, denial_reason in denial_patterns:
+            element = self.find_element_by_selector(By.XPATH, f'//*[contains(text(), "{text_pattern}")]')
+            if element:
+                logger.info(f"Detected denial pattern: '{text_pattern}' (reason: {denial_reason}). Raising UiRequestToJoinDeniedException")
+                raise UiRequestToJoinDeniedException(text_pattern, step, denial_reason=denial_reason)
 
     def look_for_asking_to_be_let_in_element_after_waiting_period_expired(self, step):
         asking_to_be_let_in_element = self.find_element_by_selector(
@@ -125,8 +119,8 @@ class GoogleMeetUIMethods:
             '//*[contains(text(), "Asking to be let in")]',
         )
         if asking_to_be_let_in_element:
-            logger.warning("Bot was not let in after waiting period expired. Raising UiRequestToJoinDeniedException")
-            raise UiRequestToJoinDeniedException("Bot was not let in after waiting period expired", step)
+            logger.warning(f"Bot was not let in after waiting period expired (reason: {UiRequestToJoinDeniedException.WAITING_PERIOD_EXPIRED}). Raising UiRequestToJoinDeniedException")
+            raise UiRequestToJoinDeniedException("Bot was not let in after waiting period expired", step, denial_reason=UiRequestToJoinDeniedException.WAITING_PERIOD_EXPIRED)
 
     def check_if_waiting_room_timeout_exceeded(self, waiting_room_timeout_started_at, step):
         waiting_room_timeout_exceeded = time.time() - waiting_room_timeout_started_at > self.automatic_leave_configuration.waiting_room_timeout_seconds
