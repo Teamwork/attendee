@@ -817,6 +817,10 @@ class Bot(models.Model):
         voice_agent_settings = self.settings.get("voice_agent_settings", {}) or {}
         return voice_agent_settings.get("reserve_resources", False)
 
+    def avatar_video_url(self):
+        avatar_settings = self.settings.get("avatar_settings", {}) or {}
+        return avatar_settings.get("video_url", None)
+
     def zoom_tokens_callback_url(self):
         callback_settings = self.settings.get("callback_settings", {})
         if callback_settings is None:

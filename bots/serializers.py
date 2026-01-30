@@ -890,6 +890,22 @@ VOICE_AGENT_SETTINGS_SCHEMA = {
     "additionalProperties": False,
 }
 
+AVATAR_SETTINGS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "video_url": {
+            "type": "string",
+            "description": "URL to Y4M video file for bot avatar. The video will be used as the bot's camera feed.",
+        },
+    },
+    "additionalProperties": False,
+}
+
+
+@extend_schema_field(AVATAR_SETTINGS_SCHEMA)
+class AvatarSettingsJSONField(serializers.JSONField):
+    pass
+
 
 @extend_schema_field(VOICE_AGENT_SETTINGS_SCHEMA)
 class VoiceAgentSettingsJSONField(serializers.JSONField):
@@ -979,6 +995,12 @@ class CreateBotSerializer(BotValidationMixin, serializers.Serializer):
 
     voice_agent_settings = VoiceAgentSettingsJSONField(
         help_text="Settings for the voice agent that the bot should load.",
+        required=False,
+        default=None,
+    )
+
+    avatar_settings = AvatarSettingsJSONField(
+        help_text="Settings for the bot's avatar video. Provide a URL to a Y4M video file that will be used as the bot's camera feed.",
         required=False,
         default=None,
     )
@@ -1112,6 +1134,21 @@ class CreateBotSerializer(BotValidationMixin, serializers.Serializer):
 
             if meeting_type == MeetingTypes.ZOOM and not use_zoom_web_adapter:
                 raise serializers.ValidationError("Voice agent is not supported for Zoom when using the native SDK. Please set 'zoom_settings.sdk' to 'web' in the bot creation request.")
+
+        return value
+
+    def validate_avatar_settings(self, value):
+        if value is None:
+            return value
+
+        try:
+            jsonschema.validate(instance=value, schema=AVATAR_SETTINGS_SCHEMA)
+        except jsonschema.exceptions.ValidationError as e:
+            raise serializers.ValidationError(e.message)
+
+        video_url = value.get("video_url")
+        if video_url and not video_url.lower().startswith("https://"):
+            raise serializers.ValidationError({"video_url": "URL must start with https://"})
 
         return value
 

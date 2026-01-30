@@ -2,11 +2,14 @@ import json
 import logging
 import os
 import signal
+import tempfile
 import threading
 import time
 import traceback
 from base64 import b64decode
 from datetime import timedelta
+
+import requests
 
 import gi
 import redis
@@ -127,6 +130,27 @@ class BotController:
             "login_email": least_used_google_meet_bot_login.email,
         }
 
+    def download_avatar_video(self):
+        """Download avatar Y4M video from URL to a temp file. Returns path or None."""
+        video_url = self.bot_in_db.avatar_video_url()
+        if not video_url:
+            return None
+
+        try:
+            response = requests.get(video_url, timeout=60)
+            response.raise_for_status()
+
+            # Create temp file with .y4m extension
+            fd, temp_path = tempfile.mkstemp(suffix=".y4m")
+            with os.fdopen(fd, "wb") as f:
+                f.write(response.content)
+
+            logger.info(f"Downloaded avatar video to {temp_path}")
+            return temp_path
+        except Exception as e:
+            logger.error(f"Failed to download avatar video from {video_url}: {e}")
+            return None
+
     def google_meet_bot_login_is_available(self):
         return self.bot_in_db.google_meet_use_bot_login() and GoogleMeetBotLogin.objects.filter(group__project=self.bot_in_db.project).exists()
 
@@ -162,6 +186,7 @@ class BotController:
             google_meet_bot_login_is_available=self.google_meet_bot_login_is_available(),
             google_meet_bot_login_should_be_used=self.bot_in_db.google_meet_login_mode_is_always(),
             create_google_meet_bot_login_session_callback=self.create_google_meet_bot_login_session,
+            avatar_video_path=self.avatar_video_path,
         )
 
     def get_teams_bot_adapter(self):
@@ -196,6 +221,7 @@ class BotController:
             teams_bot_login_credentials=teams_bot_login_credentials.get_credentials() if teams_bot_login_credentials and self.bot_in_db.teams_use_bot_login() else None,
             record_chat_messages_when_paused=self.bot_in_db.record_chat_messages_when_paused(),
             disable_incoming_video=self.disable_incoming_video_for_web_bots(),
+            avatar_video_path=self.avatar_video_path,
         )
 
     def get_zoom_oauth_credentials_via_credentials_record(self):
@@ -262,6 +288,7 @@ class BotController:
             record_chat_messages_when_paused=self.bot_in_db.record_chat_messages_when_paused(),
             disable_incoming_video=self.disable_incoming_video_for_web_bots(),
             zoom_tokens=zoom_tokens,
+            avatar_video_path=self.avatar_video_path,
         )
 
     def get_zoom_bot_adapter(self):
@@ -524,6 +551,13 @@ class BotController:
             logger.info("Telling websocket audio client to cleanup...")
             self.websocket_audio_client.cleanup()
 
+        if hasattr(self, "avatar_video_path") and self.avatar_video_path:
+            try:
+                os.remove(self.avatar_video_path)
+                logger.info(f"Deleted avatar video temp file: {self.avatar_video_path}")
+            except Exception as e:
+                logger.warning(f"Failed to delete avatar video temp file: {e}")
+
         if self.get_recording_file_location():
             self.upload_recording_to_external_media_storage_if_enabled()
 
@@ -762,6 +796,9 @@ class BotController:
                 url=self.bot_in_db.websocket_audio_url(),
                 on_message_callback=self.on_message_from_websocket_audio,
             )
+
+        # Download avatar video if configured
+        self.avatar_video_path = self.download_avatar_video()
 
         self.adapter = self.get_bot_adapter()
 

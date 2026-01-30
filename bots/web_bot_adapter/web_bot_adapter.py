@@ -52,6 +52,7 @@ class WebBotAdapter(BotAdapter):
         video_frame_size: tuple[int, int],
         record_chat_messages_when_paused: bool,
         disable_incoming_video: bool,
+        avatar_video_path: str | None = None,
     ):
         self.display_name = display_name
         self.send_message_callback = send_message_callback
@@ -69,6 +70,7 @@ class WebBotAdapter(BotAdapter):
         self.record_chat_messages_when_paused = record_chat_messages_when_paused
         self.disable_incoming_video = disable_incoming_video
         self.meeting_url = meeting_url
+        self.avatar_video_path = avatar_video_path
 
         # This is an internal ID that comes from the platform. It is currently only used for MS Teams.
         self.meeting_uuid = None
@@ -514,6 +516,8 @@ class WebBotAdapter(BotAdapter):
         options.add_argument("--autoplay-policy=no-user-gesture-required")
         options.add_argument("--use-fake-device-for-media-stream")
         options.add_argument("--use-fake-ui-for-media-stream")
+        if self.avatar_video_path:
+            options.add_argument(f"--use-file-for-fake-video-capture={self.avatar_video_path}")
         options.add_argument(f"--window-size={self.video_frame_size[0]},{self.video_frame_size[1]}")
         options.add_argument("--start-fullscreen")
         # options.add_argument('--headless=new')
