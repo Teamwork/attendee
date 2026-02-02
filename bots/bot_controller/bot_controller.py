@@ -137,7 +137,7 @@ class BotController:
             return None
 
         try:
-            response = requests.get(video_url, timeout=60)
+            response = requests.get(video_url, timeout=60, verify=os.getenv("VERIFY_SSL", "true").lower() != "false")
             response.raise_for_status()
 
             # Create temp file with .y4m extension
