@@ -51,10 +51,7 @@ CREDENTIALS_ENCRYPTION_KEY = os.getenv("CREDENTIALS_ENCRYPTION_KEY")
 
 # Validate required settings at startup
 if not CREDENTIALS_ENCRYPTION_KEY:
-    raise ValueError(
-        "CREDENTIALS_ENCRYPTION_KEY environment variable is not set. "
-        "Run 'python init_env.py > .env' during setup to generate it."
-    )
+    raise ValueError("CREDENTIALS_ENCRYPTION_KEY environment variable is not set. Run 'python init_env.py > .env' during setup to generate it.")
 
 
 AUTHENTICATION_BACKENDS = [
