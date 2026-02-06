@@ -4,7 +4,7 @@ Unit tests for recreate_bot_with_transcriptions_task
 from django.test import TransactionTestCase
 from unittest import mock
 
-from accounts.models import Organization, Project
+from accounts.models import Organization
 from bots.models import (
     Bot,
     BotStates,
@@ -17,6 +17,7 @@ from bots.models import (
     AudioChunk,
     WebhookSubscription,
     WebhookTriggerTypes,
+    Project,
 )
 from bots.tasks.recreate_bot_with_transcriptions_task import recreate_bot_with_transcriptions
 
