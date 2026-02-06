@@ -4,7 +4,7 @@ from celery import shared_task
 from django.db import transaction
 
 from bots.launch_bot_utils import launch_bot
-from bots.models import Bot, BotEventManager, BotEventTypes, Recording, Participant, Utterance, AudioChunk, BotStates, TranscriptionTypes, WebhookSubscription
+from bots.models import Bot, BotEventManager, BotEventTypes, BotStates, Participant, Recording, TranscriptionTypes, Utterance, WebhookSubscription
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,9 @@ def recreate_bot_with_transcriptions(self, original_bot_id):
                 # Create a basic recording even if we don't have an original
                 # Determine transcription provider from bot settings or use a default
                 from bots.models import TranscriptionProviders
+
                 transcription_provider = TranscriptionProviders.DEEPGRAM  # Default fallback
-                
+
                 Recording.objects.create(
                     bot=new_bot,
                     recording_type=new_bot.recording_type(),
@@ -85,7 +86,7 @@ def recreate_bot_with_transcriptions(self, original_bot_id):
 
                 # Copy utterances (transcriptions) from original recording to new recording
                 utterances_copied = 0
-                for old_utterance in original_recording.utterances.filter(transcription__isnull=False).order_by('timestamp_ms'):
+                for old_utterance in original_recording.utterances.filter(transcription__isnull=False).order_by("timestamp_ms"):
                     # Only copy utterances that have successful transcriptions
                     if not old_utterance.transcription or not old_utterance.transcription.get("transcript"):
                         continue

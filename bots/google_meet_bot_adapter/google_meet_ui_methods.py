@@ -239,11 +239,7 @@ class GoogleMeetUIMethods:
                 # Log progress every 30 iterations (~30 seconds) to show we're still waiting
                 if (attempt_to_look_for_captions_button_index + 1) % 30 == 0:
                     elapsed_seconds = int(time.time() - waiting_room_timeout_started_at)
-                    logger.info(
-                        f"Still waiting for captions button... "
-                        f"Attempt {attempt_to_look_for_captions_button_index + 1}/{num_attempts_to_look_for_captions_button}, "
-                        f"elapsed {elapsed_seconds}s. Checking for denial/blocked patterns."
-                    )
+                    logger.info(f"Still waiting for captions button... Attempt {attempt_to_look_for_captions_button_index + 1}/{num_attempts_to_look_for_captions_button}, elapsed {elapsed_seconds}s. Checking for denial/blocked patterns.")
 
                 last_check_timed_out = attempt_to_look_for_captions_button_index == num_attempts_to_look_for_captions_button - 1
                 if last_check_timed_out:

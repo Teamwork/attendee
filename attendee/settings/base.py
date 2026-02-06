@@ -51,10 +51,7 @@ CREDENTIALS_ENCRYPTION_KEY = os.getenv("CREDENTIALS_ENCRYPTION_KEY")
 
 # Validate required settings at startup
 if not CREDENTIALS_ENCRYPTION_KEY:
-    raise ValueError(
-        "CREDENTIALS_ENCRYPTION_KEY environment variable is not set. "
-        "Run 'python init_env.py > .env' during setup to generate it."
-    )
+    raise ValueError("CREDENTIALS_ENCRYPTION_KEY environment variable is not set. Run 'python init_env.py > .env' during setup to generate it.")
 
 
 AUTHENTICATION_BACKENDS = [
@@ -169,7 +166,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Redis/Celery Configuration
 redis_params = {}
-if os.getenv("DISABLE_REDIS_SSL"): # backward compatibility
+if os.getenv("DISABLE_REDIS_SSL"):  # backward compatibility
     redis_params["ssl_cert_reqs"] = "none"
 elif os.getenv("REDIS_SSL_REQUIREMENTS") is not None and os.getenv("REDIS_SSL_REQUIREMENTS") != "":
     redis_params["ssl_cert_reqs"] = os.getenv("REDIS_SSL_REQUIREMENTS")

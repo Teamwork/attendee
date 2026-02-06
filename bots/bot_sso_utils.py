@@ -36,7 +36,7 @@ def create_google_meet_sign_in_session(bot: Bot, google_meet_bot_login: GoogleMe
     session_id = str(uuid.uuid4())
     redis_key = f"google_meet_sign_in_session:{session_id}"
     redis_params = {}
-    if os.getenv("DISABLE_REDIS_SSL"): # backward compatibility
+    if os.getenv("DISABLE_REDIS_SSL"):  # backward compatibility
         redis_params["ssl_cert_reqs"] = "none"
     elif os.getenv("REDIS_SSL_REQUIREMENTS") is not None and os.getenv("REDIS_SSL_REQUIREMENTS") != "":
         redis_params["ssl_cert_reqs"] = os.getenv("REDIS_SSL_REQUIREMENTS")
@@ -55,7 +55,7 @@ def create_google_meet_sign_in_session(bot: Bot, google_meet_bot_login: GoogleMe
 def get_bot_login_for_google_meet_sign_in_session(session_id):
     redis_key = f"google_meet_sign_in_session:{session_id}"
     redis_params = {}
-    if os.getenv("DISABLE_REDIS_SSL"): # backward compatibility
+    if os.getenv("DISABLE_REDIS_SSL"):  # backward compatibility
         redis_params["ssl_cert_reqs"] = "none"
     elif os.getenv("REDIS_SSL_REQUIREMENTS") is not None and os.getenv("REDIS_SSL_REQUIREMENTS") != "":
         redis_params["ssl_cert_reqs"] = os.getenv("REDIS_SSL_REQUIREMENTS")
