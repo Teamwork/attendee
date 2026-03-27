@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This fork is DEPRECATED. It was used as a quick way to iterate over the Attendee.dev service during the proof-of-concept. We are now using the official one.
+
 <div align="center">
 <img src="static/images/logo_black_white.svg" width="300" alt="Attendee Logo">
 </div>
